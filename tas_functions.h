@@ -4,10 +4,11 @@
 #define SIZE_HEAP 128
 #define FREE_BLOCK '\0'
 #define FREE_ZONE -1
-#define STRATEGIE 0 // 0 best_fit - 1 worst_fit - autre first_fit
+#define STRATEGIE 0 // 0 best_fit - 1 worst_fit - 2 first_fit
+#define MEMORY_FULL -1
 
-char HEAP[SIZE_HEAP];
-int FREE;
+char heap[SIZE_HEAP];
+int libre;
 
 void init_heap();
 void display_heap(int size);

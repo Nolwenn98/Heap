@@ -7,9 +7,9 @@
 void display_heap(int size)
 {
     int i = 0;
-    int count = HEAP[0];
+    int count = heap[0];
 
-    printf("\n### HEAP ###\n");
+    printf("\n### heap ###\n");
     printf("%d => %d\n", 0, count);
 
     while (i < size)
@@ -17,13 +17,13 @@ void display_heap(int size)
 
         i++;
 
-        if (HEAP[i] == FREE_BLOCK)
+        if (heap[i] == FREE_BLOCK)
         {
             printf("%d =>  \n", i);
             count--;
         }
 
-        else if (HEAP[i] == FREE_ZONE)
+        else if (heap[i] == FREE_ZONE)
         {
             printf("%d => -1\n", i);
             count--;
@@ -31,85 +31,99 @@ void display_heap(int size)
 
         else if (count != 0)
         {
-            printf("%d => %c \n", i, HEAP[i]);
+            printf("%d => %c \n", i, heap[i]);
             count--;
         }
         else
         {
-            count = HEAP[i];
+            count = heap[i];
             printf("%d => %d\n", i, count);
         }
     }
 
-    printf("Libre = %d\n", FREE);
+    printf("Libre = %d\n", libre);
 }
 
 void init_heap()
 {
-    HEAP[0] = 127;
-    HEAP[1] = FREE_ZONE;
+    heap[0] = SIZE_HEAP - 1;
+    heap[1] = FREE_ZONE;
     for (int i = 2; i < SIZE_HEAP; i++)
     {
-        HEAP[i] = FREE_BLOCK;
+        heap[i] = FREE_BLOCK;
     }
-    FREE = 0;
+    libre = 0;
 }
 
 int first_fit(int size)
 {
-    if (FREE == -1)
-        return -1;
-
-    if (HEAP[FREE + 1] == FREE_ZONE && HEAP[FREE] >= size)
-        return FREE;
+    if (libre == MEMORY_FULL)
+        return MEMORY_FULL;
 
     // sinon trouver -1 et vérifier qu'on a la place
-    int index = FREE + 1;
+    int jump;
+    int index;
+    index = libre;
+
     while (index < SIZE_HEAP)
     {
-        if (HEAP[index + 1] == FREE_ZONE && HEAP[index] >= size)
+        if (heap[index + 1] == FREE_ZONE && heap[index] >= size)
             return index;
-        index++;
+
+        jump = heap[index];
+        index = index + jump + 1;
     }
-    return -1;
+    return MEMORY_FULL;
 }
 
 int worst_fit(int size)
 {
     int max = 0;
-    int max_index = -1;
+    int max_index = MEMORY_FULL;
 
-    for (int i = FREE; i < SIZE_HEAP; i++)
+    int jump;
+    int index;
+    index = libre;
+
+    while (index < SIZE_HEAP) // Sauter de block en block
     {
-        if (HEAP[i + 1] == FREE_ZONE && HEAP[i] >= size && HEAP[i] > max)
+        if (heap[index + 1] == FREE_ZONE && heap[index] >= size && heap[index] > max)
         {
-            max = HEAP[i];
-            max_index = i;
+            max = heap[index];
+            max_index = index;
         }
+        jump = heap[index];
+        index = index + jump + 1;
     }
     return max_index;
 }
 
 int best_fit(int size)
 {
-    int nearest = 1000;
-    int near_index = -1;
+    int nearest = SIZE_HEAP;
+    int near_index = MEMORY_FULL;
 
-    for (int i = FREE; i < SIZE_HEAP; i++)
+    int jump;
+    int index;
+    index = libre;
+
+    while (index < SIZE_HEAP)
     {
-        if (HEAP[i + 1] == FREE_ZONE && HEAP[i] >= size && HEAP[i] - size < nearest)
+        if (heap[index + 1] == FREE_ZONE && heap[index] >= size && heap[index] - size < nearest)
         {
-            nearest = HEAP[i] - size;
-            near_index = i;
+            nearest = heap[index] - size;
+            near_index = index;
         }
+        jump = heap[index];
+        index = index + jump + 1;
     }
     return near_index;
 }
 
 int strategie(int size)
 {
-    if (FREE == -1)
-        return -1;
+    if (libre == MEMORY_FULL)
+        return MEMORY_FULL;
 
     if (STRATEGIE == 0) // best_fit
         return (best_fit(size));
@@ -125,27 +139,27 @@ char *heap_malloc(unsigned int size)
 {
     int free_index = strategie(size);
 
-    if (free_index == -1) // Si plus de place !
+    if (free_index == MEMORY_FULL)
         return NULL;
 
-    int size_free_zone = HEAP[free_index];
+    int size_free_zone = heap[free_index];
 
     // Allocation zone prise
     if (size_free_zone == size + 1) // S'il y a une miette derrière
         size++;
 
-    HEAP[free_index] = size;
-    HEAP[free_index + 1] = 0;
+    heap[free_index] = size;
+    heap[free_index + 1] = FREE_BLOCK;
 
     // Définition zone libre derrière (si besoin)
     if (size_free_zone >= size + 2 && free_index + size + 2 < SIZE_HEAP)
     {
-        HEAP[free_index + size + 1] = size_free_zone - size - 1;
-        HEAP[free_index + size + 2] = FREE_ZONE;
+        heap[free_index + size + 1] = size_free_zone - size - 1;
+        heap[free_index + size + 2] = FREE_ZONE;
     }
 
-    FREE = first_fit(1);
-    return &HEAP[free_index + 1];
+    libre = first_fit(1);
+    return &heap[free_index + 1];
 }
 
 void heap_free(char *ptr)
@@ -158,10 +172,10 @@ void heap_free(char *ptr)
         *(ptr + i) = FREE_BLOCK;
     }
 
-    index_ptr = ptr - HEAP;
+    index_ptr = ptr - heap;
 
-    if (FREE > index_ptr)
-        FREE = index_ptr - 1;
+    if (libre > index_ptr)
+        libre = index_ptr - 1;
 
     int bool = 1;
 
@@ -173,26 +187,31 @@ void heap_free(char *ptr)
 
 void add_two_zone_free(int first_zone)
 {
-    int len_first_zone = HEAP[first_zone];
+    int len_first_zone = heap[first_zone];
     int index_second_zone = len_first_zone + first_zone + 1;
 
-    HEAP[first_zone] = len_first_zone + HEAP[index_second_zone] + 1;
-    HEAP[index_second_zone] = FREE_BLOCK;
-    HEAP[index_second_zone + 1] = FREE_BLOCK;
+    heap[first_zone] = len_first_zone + heap[index_second_zone] + 1;
+    heap[index_second_zone] = FREE_BLOCK;
+    heap[index_second_zone + 1] = FREE_BLOCK;
 }
 
 int search_two_free_zone()
 {
-    int free_index = FREE;
 
-    while (free_index < SIZE_HEAP)
+    int jump;
+    int index;
+    index = libre;
+
+    while (index < SIZE_HEAP)
     {
-        if (HEAP[free_index + 1] == FREE_ZONE && HEAP[HEAP[free_index] + free_index + 2] == FREE_ZONE)
+        if (heap[index + 1] == FREE_ZONE && heap[heap[index] + index + 2] == FREE_ZONE)
         {
-            add_two_zone_free(free_index);
+            add_two_zone_free(index);
             return 1;
         }
-        free_index++;
+
+        jump = heap[index];
+        index = index + jump + 1;
     }
 
     return 0;

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
@@ -10,49 +9,45 @@
 
 void test_init_heap(void)
 {
-
     init_heap();
 
-    CU_ASSERT(HEAP[0] == 127);
-    CU_ASSERT(HEAP[1] == FREE_ZONE);
-    CU_ASSERT(FREE == 0);
+    CU_ASSERT(heap[0] == 127);
+    CU_ASSERT(heap[1] == FREE_ZONE);
+    CU_ASSERT(libre == 0);
 }
 
 void test_first_fit(void)
 {
-
     int size = 3;
 
     init_heap();
+
     CU_ASSERT(first_fit(size) == 0);
 
-    HEAP[0] = 3;
-    HEAP[1] = 'a';
-    HEAP[2] = 'b';
-    HEAP[3] = '\0';
-    HEAP[4] = 123;
-    HEAP[5] = -1;
-    FREE = 4;
+    heap[0] = 3;
+    strcpy(&heap[1], "ab");
+    heap[4] = 123;
+    heap[5] = -1;
+    libre = 4;
+
     CU_ASSERT(first_fit(size) == 4);
 
-    HEAP[0] = 3;
-    HEAP[1] = 'a';
-    HEAP[2] = 'b';
-    HEAP[3] = '\0';
-    HEAP[4] = 2;
-    HEAP[5] = -1;
-    HEAP[6] = 3;
-    HEAP[7] = 'a';
-    HEAP[8] = 'b';
-    HEAP[9] = '\0';
-    HEAP[10] = 118;
-    HEAP[11] = -1;
-    FREE = 4;
+    heap[0] = 3;
+    strcpy(&heap[1], "ab");
+    heap[4] = 1;
+    heap[5] = -1;
+    heap[6] = 3;
+    strcpy(&heap[7], "ab");
+    heap[10] = 118;
+    heap[11] = -1;
+    libre = 4;
+
     CU_ASSERT(first_fit(size) == 10);
 
-    HEAP[0] = 127;
-    HEAP[127] = '\0';
-    FREE = -1;
+    heap[0] = 127;
+    heap[127] = '\0';
+    libre = -1;
+
     CU_ASSERT(first_fit(size) == FREE_ZONE);
 }
 
@@ -64,27 +59,25 @@ void test_add_character(void)
     p1 = (char *)heap_malloc(3);
     strcpy(p1, "ab");
 
-    CU_ASSERT(HEAP[0] == 3 && HEAP[1] == 'a' && HEAP[2] == 'b' && HEAP[3] == FREE_BLOCK)
-    CU_ASSERT(HEAP[4] == 123 && HEAP[5] == FREE_ZONE);
-    CU_ASSERT(FREE == 4);
+    CU_ASSERT(heap[0] == 3 && heap[1] == 'a' && heap[2] == 'b' && heap[3] == FREE_BLOCK)
+    CU_ASSERT(heap[4] == 123 && heap[5] == FREE_ZONE);
+    CU_ASSERT(libre == 4);
 }
 
 void test_empty_heap(void)
 {
-
     char *p1;
 
     init_heap();
     p1 = (char *)heap_malloc(127);
     strcpy(p1, "ab");
 
-    CU_ASSERT(HEAP[0] == 127 && HEAP[127] == FREE_BLOCK);
-    CU_ASSERT(FREE == FREE_ZONE);
+    CU_ASSERT(heap[0] == 127 && heap[127] == FREE_BLOCK);
+    CU_ASSERT(libre == FREE_ZONE);
 }
 
 void test_add_to_empty_heap(void)
 {
-
     char *p1, *p2;
 
     init_heap();
@@ -92,14 +85,13 @@ void test_add_to_empty_heap(void)
     strcpy(p1, "ab");
 
     p2 = (char *)heap_malloc(3);
-    display_heap(127);
+
     CU_ASSERT(p2 == NULL);
-    CU_ASSERT(FREE == FREE_ZONE);
+    CU_ASSERT(libre == FREE_ZONE);
 }
 
 void test_add_to_almost_empty_heap(void)
 {
-
     char *p1, *p2;
 
     init_heap();
@@ -109,59 +101,53 @@ void test_add_to_almost_empty_heap(void)
     p2 = (char *)heap_malloc(3);
 
     CU_ASSERT(p2 == NULL);
-    CU_ASSERT(FREE == 126);
+    CU_ASSERT(libre == 126);
 }
 
 void test_heap_free(void)
 {
-
     init_heap();
-    HEAP[0] = 3;
-    HEAP[1] = 'a';
-    HEAP[2] = 'b';
-    HEAP[3] = '\0';
-    HEAP[4] = 2;
-    HEAP[5] = 'a';
-    HEAP[6] = '\0';
-    HEAP[7] = 3;
-    HEAP[8] = 'a';
-    HEAP[9] = 'b';
-    HEAP[10] = '\0';
-    HEAP[11] = 116;
-    HEAP[12] = -1;
-    FREE = 11;
 
-    heap_free(&HEAP[5]);
+    heap[0] = 3;
+    strcpy(&heap[1], "ab");
+    heap[4] = 2;
+    strcpy(&heap[5], "a");
+    heap[7] = 3;
+    strcpy(&heap[8], "ab");
+    heap[11] = 116;
+    heap[12] = -1;
+    libre = 11;
 
-    CU_ASSERT(HEAP[4] == 2 && HEAP[5] == FREE_ZONE);
-    CU_ASSERT(FREE == 4);
+    heap_free(&heap[5]);
+
+    CU_ASSERT(heap[4] == 2 && heap[5] == FREE_ZONE);
+    CU_ASSERT(libre == 4);
 }
 
 void test_heap_malloc_example()
 {
-
     init_heap();
 
     char *p1 = heap_malloc(10);
 
-    CU_ASSERT(p1 - 1 == HEAP);
+    CU_ASSERT(p1 - 1 == heap);
     CU_ASSERT(*(p1 + 1) != FREE_ZONE);
 
-    CU_ASSERT(FREE == 10 + 1);
-    CU_ASSERT(*(HEAP + FREE) == 116);
-    CU_ASSERT(*(HEAP + FREE + 1) == FREE_ZONE);
+    CU_ASSERT(libre == 10 + 1);
+    CU_ASSERT(*(heap + libre) == 116);
+    CU_ASSERT(*(heap + libre + 1) == FREE_ZONE);
 
     char *p2 = heap_malloc(9);
 
-    CU_ASSERT(p2 == HEAP + 12);
+    CU_ASSERT(p2 == heap + 12);
     CU_ASSERT(*(p2 - 1) == 9);
-    CU_ASSERT(FREE == 21);
+    CU_ASSERT(libre == 21);
 
     char *p3 = heap_malloc(5);
 
-    CU_ASSERT(p3 == HEAP + 22);
+    CU_ASSERT(p3 == heap + 22);
     CU_ASSERT(*(p3 - 1) == 5);
-    CU_ASSERT(FREE == 27);
+    CU_ASSERT(libre == 27);
 
     char *p4 = heap_malloc(104);
 
@@ -170,7 +156,6 @@ void test_heap_malloc_example()
 
 void test_heap_free_several()
 {
-
     init_heap();
 
     char *p1 = heap_malloc(10);
@@ -187,7 +172,7 @@ void test_heap_free_several()
 
     CU_ASSERT(*(p2 - 1) == 10);
     CU_ASSERT(*(p2) == FREE_ZONE);
-    CU_ASSERT(FREE == p2 - 1 - HEAP);
+    CU_ASSERT(libre == p2 - 1 - heap);
 
     heap_free(p3); // testing merge left
 
@@ -196,13 +181,13 @@ void test_heap_free_several()
 
     CU_ASSERT(*(p2 - 1) == 21);
     CU_ASSERT(*(p2) == FREE_ZONE);
-    CU_ASSERT(FREE == p2 - 1 - HEAP);
+    CU_ASSERT(libre == p2 - 1 - heap);
 
     heap_free(p1); // testing merge right
 
     CU_ASSERT(*(p1 - 1) == 32);
     CU_ASSERT(*(p1) == FREE_ZONE);
-    CU_ASSERT(FREE == 0);
+    CU_ASSERT(libre == 0);
 }
 
 void test_full_example()
@@ -228,9 +213,9 @@ void test_full_example()
     CU_ASSERT(*(p1 - 1) == 10);
     CU_ASSERT(*(p4 - 1) == 9);
     CU_ASSERT(*(p3 - 1) == 5);
-    CU_ASSERT(FREE == 27);
-    CU_ASSERT(HEAP[27] == 100);
-    CU_ASSERT(HEAP[28] == FREE_ZONE);
+    CU_ASSERT(libre == 27);
+    CU_ASSERT(heap[27] == 100);
+    CU_ASSERT(heap[28] == FREE_ZONE);
 
     CU_ASSERT(strcmp(p1, "tp 1") == 0);
     CU_ASSERT(strcmp(p3, "tp 3") == 0);
