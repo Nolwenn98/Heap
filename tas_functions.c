@@ -4,6 +4,17 @@
 
 #include "tas_functions.h"
 
+void init_heap()
+{
+    heap[0] = SIZE_HEAP - 1;
+    heap[1] = FREE_ZONE;
+    for (int i = 2; i < SIZE_HEAP; i++)
+    {
+        heap[i] = FREE_BLOCK;
+    }
+    libre = 0;
+}
+
 void display_heap(int size)
 {
     int i = 0;
@@ -41,17 +52,6 @@ void display_heap(int size)
     }
 
     printf("Libre = %d\n", libre);
-}
-
-void init_heap()
-{
-    heap[0] = SIZE_HEAP - 1;
-    heap[1] = FREE_ZONE;
-    for (int i = 2; i < SIZE_HEAP; i++)
-    {
-        heap[i] = FREE_BLOCK;
-    }
-    libre = 0;
 }
 
 int get_index_next_block(int index)
@@ -115,23 +115,9 @@ int best_fit(int size)
     return near_index;
 }
 
-int strategie(int size)
-{
-    if (libre == MEMORY_FULL)
-        return MEMORY_FULL;
-
-    if (STRATEGIE == 0) // best_fit
-        return (best_fit(size));
-
-    else if (STRATEGIE == 1) // worst_fit
-        return (worst_fit(size));
-
-    else // first_fit
-        return (first_fit(size));
-}
-
 char *heap_malloc(unsigned int size)
 {
+
     int free_index = strategie(size);
 
     if (free_index == MEMORY_FULL)

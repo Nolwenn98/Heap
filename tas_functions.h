@@ -4,7 +4,7 @@
 #define SIZE_HEAP 128
 #define FREE_BLOCK '\0'
 #define FREE_ZONE -1
-#define STRATEGIE 0 // 0 best_fit - 1 worst_fit - 2 first_fit
+
 #define MEMORY_FULL -1
 
 char heap[SIZE_HEAP];
@@ -26,4 +26,5 @@ void heap_free(char *ptr);
 int search_two_free_zone();
 void add_two_zone_free(int first_zone);
 
+int (*strategie)(int);
 #endif

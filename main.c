@@ -33,6 +33,8 @@ int main()
     // strcpy(p4, "systeme");
 
     char *p1, *p2, *p3, *p4;
+    strategie = &worst_fit;
+
     p1 = (char *)heap_malloc(10);
     display_heap(30);
     p2 = (char *)heap_malloc(9);
