@@ -14,11 +14,11 @@ void init_heap();
 void display_heap(int size);
 
 // Stratégies
-
+int (*strategie)(int);
 int worst_fit(int size);
 int first_fit(int size);
 int best_fit(int size);
-char *heap_malloc(unsigned int taille);
+char *heap_malloc(unsigned int taille, int (*strategie)(int));
 
 void heap_free(char *ptr);
 
@@ -26,5 +26,4 @@ void heap_free(char *ptr);
 int search_two_free_zone();
 void add_two_zone_free(int first_zone);
 
-int (*strategie)(int);
 #endif

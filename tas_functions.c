@@ -115,7 +115,7 @@ int best_fit(int size)
     return near_index;
 }
 
-char *heap_malloc(unsigned int size)
+char *heap_malloc(unsigned int size, int (*strategie)(int))
 {
 
     int free_index = strategie(size);
