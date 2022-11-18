@@ -14,7 +14,6 @@ void display_heap(int size)
 
     while (i < size)
     {
-
         i++;
 
         if (heap[i] == FREE_BLOCK)
@@ -55,23 +54,25 @@ void init_heap()
     libre = 0;
 }
 
+int get_index_next_block(int index)
+{
+    return heap[index] + index + 1;
+}
+
 int first_fit(int size)
 {
     if (libre == MEMORY_FULL)
         return MEMORY_FULL;
 
     // sinon trouver -1 et vérifier qu'on a la place
-    int jump;
-    int index;
-    index = libre;
+    int index = libre;
 
     while (index < SIZE_HEAP)
     {
         if (heap[index + 1] == FREE_ZONE && heap[index] >= size)
             return index;
 
-        jump = heap[index];
-        index = index + jump + 1;
+        index = get_index_next_block(index);
     }
     return MEMORY_FULL;
 }
@@ -81,9 +82,7 @@ int worst_fit(int size)
     int max = 0;
     int max_index = MEMORY_FULL;
 
-    int jump;
-    int index;
-    index = libre;
+    int index = libre;
 
     while (index < SIZE_HEAP) // Sauter de block en block
     {
@@ -92,8 +91,7 @@ int worst_fit(int size)
             max = heap[index];
             max_index = index;
         }
-        jump = heap[index];
-        index = index + jump + 1;
+        index = get_index_next_block(index);
     }
     return max_index;
 }
@@ -103,9 +101,7 @@ int best_fit(int size)
     int nearest = SIZE_HEAP;
     int near_index = MEMORY_FULL;
 
-    int jump;
-    int index;
-    index = libre;
+    int index = libre;
 
     while (index < SIZE_HEAP)
     {
@@ -114,8 +110,7 @@ int best_fit(int size)
             nearest = heap[index] - size;
             near_index = index;
         }
-        jump = heap[index];
-        index = index + jump + 1;
+        index = get_index_next_block(index);
     }
     return near_index;
 }
@@ -197,10 +192,7 @@ void add_two_zone_free(int first_zone)
 
 int search_two_free_zone()
 {
-
-    int jump;
-    int index;
-    index = libre;
+    int index = libre;
 
     while (index < SIZE_HEAP)
     {
@@ -209,9 +201,7 @@ int search_two_free_zone()
             add_two_zone_free(index);
             return 1;
         }
-
-        jump = heap[index];
-        index = index + jump + 1;
+        index = get_index_next_block(index);
     }
 
     return 0;
