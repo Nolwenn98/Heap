@@ -9,21 +9,16 @@
 
 #define MEMORY_FULL -1
 
-Liste *heap;
-Liste *libre;
+char heap[SIZE_HEAP];
+int libre;
 
-Liste *init_heap();
-void ll_print(Liste *list);
-
-void display_heap(Liste *heap, int size);
-
-Liste *get_ptr_next_block(Liste *ptr_heap);
-void add_words(Liste *list, char word[], int size, Liste *heap);
+void init_heap();
+void display_heap(int size);
 
 // Stratégies
 int (*strategie)(int);
 int worst_fit(int size);
-Liste *first_fit(int size);
+int first_fit(int size);
 int best_fit(int size);
 char *heap_malloc(unsigned int taille, int (*strategie)(int));
 
