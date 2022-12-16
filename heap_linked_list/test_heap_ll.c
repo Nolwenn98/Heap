@@ -146,7 +146,9 @@ void test_list_sort(void)
     element_t *ptr;
     ptr = libre.start;
 
+    display_heap(heap, &libre, 10);
     list_sort(&libre);
+    display_heap(heap, &libre, 0);
 
     CU_ASSERT((int)libre.start->data == 0);
     ptr = ptr->next;
@@ -180,12 +182,12 @@ int main()
 
     /* add the tests to the suite */
     if (
-        NULL == CU_add_test(pSuite, "test of test_init_heap()", test_init_heap) ||
-        NULL == CU_add_test(pSuite, "test of test_first_fit()", test_first_fit) ||
-        NULL == CU_add_test(pSuite, "test of test_add_character()", test_add_character) ||
-        NULL == CU_add_test(pSuite, "test of test_add_to_empty_heap()", test_add_to_empty_heap) ||
-        NULL == CU_add_test(pSuite, "test of test_add_to_almost_empty_heap()", test_add_to_almost_empty_heap) ||
-        NULL == CU_add_test(pSuite, "test of test_heap_free()", test_heap_free) ||
+        // NULL == CU_add_test(pSuite, "test of test_init_heap()", test_init_heap) ||
+        // NULL == CU_add_test(pSuite, "test of test_first_fit()", test_first_fit) ||
+        // NULL == CU_add_test(pSuite, "test of test_add_character()", test_add_character) ||
+        // NULL == CU_add_test(pSuite, "test of test_add_to_empty_heap()", test_add_to_empty_heap) ||
+        // NULL == CU_add_test(pSuite, "test of test_add_to_almost_empty_heap()", test_add_to_almost_empty_heap) ||
+        // NULL == CU_add_test(pSuite, "test of test_heap_free()", test_heap_free) ||
         NULL == CU_add_test(pSuite, "test of test_list_sort()", test_list_sort)
 
     )

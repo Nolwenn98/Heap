@@ -131,22 +131,53 @@ int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
     return near_index;
 }
 
+void tmp(list_t *libre)
+{
+    element_t *elem = libre->start;
+    printf("Libre ! \n");
+    while (elem != NULL)
+    {
+        printf("%d\n", (int)elem->data);
+        elem = elem->next;
+    }
+}
+
 void list_sort(list_t *libre)
 {
     uint8_t index = 0;
-    element_t *ptr, *element_to_move;
+    element_t *ptr;
     ptr = libre->start;
 
     while (ptr->next != NULL)
     {
+        // tmp(libre);
+        // printf("DATA - DATA NEXT : %d - %d\n", (int)ptr->data, (int)ptr->next->data);
         if (ptr->data > ptr->next->data)
         {
-            element_to_move = list_remove_at(libre, index + 1);
-            list_insert_at(libre, element_to_move, index);
-        }
+            // element_t *ptr_move;
+            // ptr_move = ptr->next;
+            uint32_t index_move = index + 1;
+            uint32_t data_to_move;
 
+            data_to_move = (int)list_remove_at(libre, index_move);
+            // tmp(libre);
+            // printf("DATA : %d %d \n", data_to_move, index_move);
+            // tmp(ptr_move);
+            // tmp(ptr);
+            // printf("DATA !! %d \n", (int)ptr_move->data);
+            // while (ptr_move->previous != NULL && data_to_move < (int)ptr_move->data)
+            // {
+            //     index_move--;
+            //     ptr_move = ptr_move->previous;
+            //     // printf("DATA : %d", data_to_move);
+            // }
+
+            list_insert_at(libre, (void *)data_to_move, index_move - 1);
+        }
         else
+        {
             ptr = ptr->next;
+        }
 
         index++;
     }
