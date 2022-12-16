@@ -9,23 +9,21 @@
 
 #define MEMORY_FULL -1
 
-char heap[SIZE_HEAP];
-
-void init_heap(list_t *libre);
-void display_heap(int size, list_t *libre);
+void init_heap(char heap[SIZE_HEAP], list_t *libre);
+void display_heap(char heap[SIZE_HEAP], list_t *libre, int size);
 
 // Stratégies
-int8_t (*strategie)(uint8_t, list_t *);
-int8_t worst_fit(uint8_t size, list_t *libre);
-int8_t first_fit(uint8_t size, list_t *libre);
-int8_t best_fit(uint8_t size, list_t *libre);
-char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list_t *));
+int8_t (*strategie)(char *, list_t *, uint8_t);
+int8_t worst_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
+int8_t first_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
+int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
+char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*strategie)(char *, list_t *, uint8_t));
 
 void list_sort(list_t *libre);
 
-void heap_free(char *ptr, list_t *libre);
+void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr);
 
 // Deux zones libres à la suite
-void search_two_free_zone(list_t *libre);
+void search_two_free_zone(char heap[SIZE_HEAP], list_t *libre);
 
 #endif

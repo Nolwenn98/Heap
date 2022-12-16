@@ -5,7 +5,7 @@
 #include "list.h"
 #include "heap_ll.h"
 
-void init_heap(list_t *libre)
+void init_heap(char heap[SIZE_HEAP], list_t *libre)
 {
     heap[0] = SIZE_HEAP - 1;
     heap[1] = FREE_ZONE;
@@ -22,7 +22,7 @@ void init_heap(list_t *libre)
     list_append(libre, (void *)0);
 }
 
-void display_heap(int size, list_t *libre)
+void display_heap(char heap[SIZE_HEAP], list_t *libre, int size)
 {
     uint8_t i = 0;
     uint8_t count = heap[0];
@@ -67,7 +67,7 @@ void display_heap(int size, list_t *libre)
     }
 }
 
-int8_t first_fit(uint8_t size, list_t *libre)
+int8_t first_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 {
     if (libre->start == NULL)
         return MEMORY_FULL;
@@ -87,7 +87,7 @@ int8_t first_fit(uint8_t size, list_t *libre)
     return MEMORY_FULL;
 }
 
-int8_t worst_fit(uint8_t size, list_t *libre)
+int8_t worst_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 {
     int8_t max = 0;
     int8_t max_index = MEMORY_FULL;
@@ -110,7 +110,7 @@ int8_t worst_fit(uint8_t size, list_t *libre)
     return max_index;
 }
 
-int8_t best_fit(uint8_t size, list_t *libre)
+int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 {
     int8_t nearest = SIZE_HEAP;
     int8_t near_index = MEMORY_FULL;
@@ -152,10 +152,10 @@ void list_sort(list_t *libre)
     }
 }
 
-char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list_t *))
+char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*strategie)(char *, list_t *, uint8_t))
 {
 
-    int8_t free_index = strategie(size, libre);
+    int8_t free_index = strategie(heap, libre, size);
 
     if (free_index == MEMORY_FULL)
         return NULL;
@@ -187,7 +187,7 @@ char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list
     return &heap[free_index + 1];
 }
 
-void heap_free(char *ptr, list_t *libre)
+void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr)
 {
     int8_t index_ptr;
 
@@ -203,10 +203,10 @@ void heap_free(char *ptr, list_t *libre)
     list_append(libre, (void *)index_ptr);
     list_sort(libre);
 
-    search_two_free_zone(libre);
+    search_two_free_zone(heap, libre);
 }
 
-void search_two_free_zone(list_t *libre)
+void search_two_free_zone(char heap[SIZE_HEAP], list_t *libre)
 {
     element_t *element;
     element = libre->start;
