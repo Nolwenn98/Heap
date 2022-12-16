@@ -217,7 +217,7 @@ void search_two_free_zone(list_t *libre)
         uint32_t ind_remove;
         index = (int)element->data;
         index_next = (int)element->next->data;
-        if (index + heap[index] == index_next)
+        if (index + heap[index] + 1 == index_next)
         {
             heap[index] += heap[index_next] + 1;
             heap[index_next] = FREE_BLOCK;
@@ -226,6 +226,7 @@ void search_two_free_zone(list_t *libre)
             ind_remove = list_index(libre, (void *)index_next);
             list_remove_at(libre, ind_remove);
         }
-        element = element->next;
+        else
+            element = element->next;
     }
 }
