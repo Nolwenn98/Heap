@@ -150,7 +150,16 @@ void list_sort(list_t *libre)
 
     while (ptr->next != NULL)
     {
-        if (ptr->data > ptr->next->data)
+        if (ptr->previous == NULL && ptr->data > ptr->next->data)
+        {
+            uint32_t index_move = index + 1;
+            uint32_t data_to_move;
+
+            data_to_move = (int)list_remove_at(libre, index_move);
+
+            list_insert_at(libre, (void *)data_to_move, index_move - 1);
+        }
+        else if (ptr->data > ptr->next->data)
         {
             uint32_t index_move = index + 1;
             uint32_t data_to_move;
@@ -165,7 +174,6 @@ void list_sort(list_t *libre)
         {
             ptr = ptr->next;
         }
-
         index++;
     }
 }
@@ -218,8 +226,10 @@ void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr)
     index_ptr = ptr - heap - 1;
 
     // Ajout de l'index dans free
+
     list_append(libre, (void *)index_ptr);
     list_sort(libre);
+    printf("ici");
 
     search_two_free_zone(heap, libre);
 }
