@@ -158,6 +158,8 @@ void list_sort(list_t *libre)
             data_to_move = (int)list_remove_at(libre, index_move);
 
             list_insert_at(libre, (void *)data_to_move, index_move - 1);
+            index -= 2;
+            ptr = ptr->previous->previous;
         }
         else
         {
