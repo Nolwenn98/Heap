@@ -9,10 +9,11 @@
 #include "heap_ll.h"
 
 static list_t libre = LIST_INITIALIZER;
+static char heap[SIZE_HEAP];
 
 void test_init_heap(void)
 {
-    init_heap(&libre);
+    init_heap(heap, &libre);
 
     CU_ASSERT(heap[0] == 127);
     CU_ASSERT(heap[1] == FREE_ZONE);
@@ -21,7 +22,7 @@ void test_init_heap(void)
 
     // Remise à zero de libre
     list_append(&libre, (void *)4);
-    init_heap(&libre);
+    init_heap(heap, &libre);
 
     CU_ASSERT((int)libre.start->data == 0);
     CU_ASSERT((int)libre.end->data == 0);
@@ -33,9 +34,9 @@ void test_first_fit(void)
     int data1 = 4;
 
     // Toute la mémoire libre
-    init_heap(&libre);
+    init_heap(heap, &libre);
 
-    CU_ASSERT(first_fit(size, &libre) == 0);
+    CU_ASSERT(first_fit(heap, &libre, size) == 0);
 
     // Une zone mémoire alloué
     heap[0] = 3;
@@ -45,16 +46,16 @@ void test_first_fit(void)
     heap[5] = -1;
     list_append(&libre, (void *)data1);
 
-    CU_ASSERT(first_fit(size, &libre) == 4);
+    CU_ASSERT(first_fit(heap, &libre, size) == 4);
 
     // Toute la mémoire alloué
-    init_heap(&libre);
+    init_heap(heap, &libre);
 
     heap[0] = 127;
     heap[127] = '\0';
     list_pop_first(&libre);
 
-    CU_ASSERT(first_fit(size, &libre) == MEMORY_FULL);
+    CU_ASSERT(first_fit(heap, &libre, size) == MEMORY_FULL);
 }
 
 void test_add_character(void)
@@ -63,8 +64,8 @@ void test_add_character(void)
     strategie = &first_fit;
 
     // Toute la mémoire libre
-    init_heap(&libre);
-    p1 = (char *)heap_malloc(3, &libre, strategie);
+    init_heap(heap, &libre);
+    p1 = (char *)heap_malloc(heap, &libre, 3, strategie);
     strcpy(p1, "ab");
 
     CU_ASSERT(heap[0] == 3 && heap[1] == 'a' && heap[2] == 'b' && heap[3] == FREE_BLOCK)
@@ -72,14 +73,14 @@ void test_add_character(void)
     CU_ASSERT((int)libre.start->data == 4);
 
     // Une zone mémoire alloué
-    p2 = (char *)heap_malloc(123, &libre, strategie);
+    p2 = (char *)heap_malloc(heap, &libre, 123, strategie);
     strcpy(p2, "aaaaab");
 
     CU_ASSERT(heap[4] == 123 && heap[5] == 'a')
     CU_ASSERT(libre.start == NULL);
 
     // Toute la mémoire alloué
-    p3 = (char *)heap_malloc(4, &libre, strategie);
+    p3 = (char *)heap_malloc(heap, &libre, 4, strategie);
 
     CU_ASSERT(p3 == NULL)
     CU_ASSERT(libre.start == NULL);
@@ -89,11 +90,11 @@ void test_add_to_empty_heap(void)
 {
     char *p1, *p2;
 
-    init_heap(&libre);
-    p1 = (char *)heap_malloc(127, &libre, strategie);
+    init_heap(heap, &libre);
+    p1 = (char *)heap_malloc(heap, &libre, 127, strategie);
     strcpy(p1, "ab");
 
-    p2 = (char *)heap_malloc(3, &libre, strategie);
+    p2 = (char *)heap_malloc(heap, &libre, 3, strategie);
 
     CU_ASSERT(p2 == NULL);
     CU_ASSERT(libre.start == NULL);
@@ -104,11 +105,11 @@ void test_add_to_almost_empty_heap(void)
 {
     char *p1, *p2;
 
-    init_heap(&libre);
-    p1 = (char *)heap_malloc(125, &libre, strategie);
+    init_heap(heap, &libre);
+    p1 = (char *)heap_malloc(heap, &libre, 125, strategie);
     strcpy(p1, "ab");
 
-    p2 = (char *)heap_malloc(3, &libre, strategie);
+    p2 = (char *)heap_malloc(heap, &libre, 3, strategie);
 
     CU_ASSERT(p2 == NULL);
     CU_ASSERT((int)libre.start->data == 126);
@@ -119,23 +120,23 @@ void test_heap_free(void)
 
     char *p1, *p2, *p3;
 
-    init_heap(&libre);
-    p1 = (char *)heap_malloc(3, &libre, strategie);
+    init_heap(heap, &libre);
+    p1 = (char *)heap_malloc(heap, &libre, 3, strategie);
     strcpy(p1, "ab");
-    p2 = (char *)heap_malloc(2, &libre, strategie);
+    p2 = (char *)heap_malloc(heap, &libre, 2, strategie);
     strcpy(p2, "a");
-    p3 = (char *)heap_malloc(3, &libre, strategie);
+    p3 = (char *)heap_malloc(heap, &libre, 3, strategie);
     strcpy(p3, "ab");
 
-    heap_free(p2, &libre);
+    heap_free(heap, &libre, p2);
 
     CU_ASSERT(heap[4] == 2 && heap[5] == FREE_ZONE);
     CU_ASSERT((int)libre.start->data == 4);
 }
 
-void test_list_sort_crescent(void)
+void test_list_sort(void)
 {
-    init_heap(&libre);
+    init_heap(heap, &libre);
 
     list_append(&libre, (void *)9);
     list_append(&libre, (void *)4);
@@ -145,8 +146,7 @@ void test_list_sort_crescent(void)
     element_t *ptr;
     ptr = libre.start;
 
-    list_sort_crescent(&libre);
-    display_heap(0, &libre);
+    list_sort(&libre);
 
     CU_ASSERT((int)libre.start->data == 0);
     ptr = ptr->next;
@@ -186,7 +186,7 @@ int main()
         NULL == CU_add_test(pSuite, "test of test_add_to_empty_heap()", test_add_to_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_add_to_almost_empty_heap()", test_add_to_almost_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_heap_free()", test_heap_free) ||
-        NULL == CU_add_test(pSuite, "test of test_list_sort_crescent()", test_list_sort_crescent)
+        NULL == CU_add_test(pSuite, "test of test_list_sort()", test_list_sort)
 
     )
     {

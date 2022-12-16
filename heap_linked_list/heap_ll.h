@@ -17,7 +17,8 @@ int8_t (*strategie)(char *, list_t *, uint8_t);
 int8_t worst_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
 int8_t first_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
 int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
-char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*strategie)(char *, list_t *, uint8_t));
+char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size,
+                  int8_t (*strategie)(char *, list_t *, uint8_t));
 
 void list_sort(list_t *libre);
 
