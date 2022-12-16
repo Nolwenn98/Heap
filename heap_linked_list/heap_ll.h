@@ -16,15 +16,16 @@ void display_heap(int size, list_t *libre);
 
 // Stratégies
 int8_t (*strategie)(uint8_t, list_t *);
-int8_t worst_fit(uint8_t size);
+int8_t worst_fit(uint8_t size, list_t *libre);
 int8_t first_fit(uint8_t size, list_t *libre);
-int8_t best_fit(uint8_t size);
+int8_t best_fit(uint8_t size, list_t *libre);
 char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list_t *));
+
+void list_sort_crescent(list_t *libre);
 
 void heap_free(char *ptr, list_t *libre);
 
 // Deux zones libres à la suite
-int search_two_free_zone();
-void add_two_zone_free(int first_zone);
+void search_two_free_zone(list_t *libre);
 
 #endif

@@ -28,18 +28,18 @@ int main()
     strcpy(p5, "ab");
 
     heap_free(p2, &libre);
-    // heap_free(p4);
-    // heap_free(p5);
+    heap_free(p4, &libre);
+    heap_free(p5, &libre);
     display_heap(30, &libre);
 
-    // p4 = (char *)heap_malloc(8);
-    // printf("p4 : %d", *p4);
-    // strcpy(p4, "systeme");
+    p4 = (char *)heap_malloc(8, &libre, strategie);
+    printf("p4 : %d", *p4);
+    strcpy(p4, "systeme");
 
     // char *p1, *p2, *p3, *p4;
 
     // p1 = (char *)heap_malloc(10, strategie);
-    // display_heap(30);
+    display_heap(30, &libre);
     // p2 = (char *)heap_malloc(9, strategie);
     // p3 = (char *)heap_malloc(5, strategie);
 

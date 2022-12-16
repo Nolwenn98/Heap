@@ -14,7 +14,6 @@ void init_heap(list_t *libre)
         heap[i] = FREE_BLOCK;
     }
 
-    // uint8_t first_free_index = 0;
     while (libre->start != NULL)
     {
         list_pop_first(libre);
@@ -68,17 +67,11 @@ void display_heap(int size, list_t *libre)
     }
 }
 
-// int get_index_next_block(int index)
-// {
-//     return heap[index] + index + 1;
-// }
-
 int8_t first_fit(uint8_t size, list_t *libre)
 {
     if (libre->start == NULL)
         return MEMORY_FULL;
 
-    // sinon parcourir les espaces libres et voir si on a assez de place pour allouer
     element_t *element;
     element = libre->start;
 
@@ -94,77 +87,76 @@ int8_t first_fit(uint8_t size, list_t *libre)
     return MEMORY_FULL;
 }
 
-// int worst_fit(int size)
-// {
-//     int max = 0;
-//     int max_index = MEMORY_FULL;
+int8_t worst_fit(uint8_t size, list_t *libre)
+{
+    int8_t max = 0;
+    int8_t max_index = MEMORY_FULL;
 
-//     int index = libre;
+    element_t *element;
+    element = libre->start;
 
-//     while (index < SIZE_HEAP) // Sauter de block en block
-//     {
-//         if (heap[index + 1] == FREE_ZONE && heap[index] >= size && heap[index] > max)
-//         {
-//             max = heap[index];
-//             max_index = index;
-//         }
-//         index = get_index_next_block(index);
-//     }
-//     return max_index;
-// }
+    while (element != NULL)
+    {
+        int8_t index = (int)element->data;
+        if (heap[index] >= max)
+        {
+            max = heap[index];
+            max_index = index;
+        }
 
-// int best_fit(int size)
-// {
-//     int nearest = SIZE_HEAP;
-//     int near_index = MEMORY_FULL;
+        element = element->next;
+    }
 
-//     int index = libre;
+    return max_index;
+}
 
-//     while (index < SIZE_HEAP)
-//     {
-//         if (heap[index + 1] == FREE_ZONE && heap[index] >= size && heap[index] - size < nearest)
-//         {
-//             nearest = heap[index] - size;
-//             near_index = index;
-//         }
-//         index = get_index_next_block(index);
-//     }
-//     return near_index;
-// }
+int8_t best_fit(uint8_t size, list_t *libre)
+{
+    int8_t nearest = SIZE_HEAP;
+    int8_t near_index = MEMORY_FULL;
 
-// void update_libre(int free_index)
-// {
-//     // free_index vient d'être allouer
-//     Liste *tmp, *tmp_prev;
-//     int index_free;
-//     index_free = first_fit(1);
-//     printf("index_free %d\n", index_free);
-//     tmp = libre;
-//     if (libre->number >= index_free)
-//     {
-//         tmp->number = index_free;
-//         tmp->next = libre;
-//         libre = tmp;
-//         return;
-//     }
+    element_t *element;
+    element = libre->start;
 
-//     tmp_prev = libre;
-//     tmp = tmp->next;
-//     while (tmp->number < index_free || tmp->next != NULL)
-//     {
-//         tmp = tmp->next;
-//         tmp_prev = tmp_prev->next;
-//     }
-//     tmp->number = index_free;
-//     tmp_prev->next = tmp;
-// }
+    while (element != NULL)
+    {
+        int8_t index = (int)element->data;
+        if (heap[index] >= size && heap[index] - size < nearest)
+        {
+            nearest = heap[index] - size;
+            near_index = index;
+        }
+        element = element->next;
+    }
+    return near_index;
+}
+
+void list_sort_crescent(list_t *libre)
+{
+    uint8_t index = 0;
+    element_t *ptr, *element_to_move;
+    ptr = libre->start;
+
+    while (ptr->next != NULL)
+    {
+        if (ptr->data > ptr->next->data)
+        {
+            element_to_move = list_remove_at(libre, index + 1);
+            list_insert_at(libre, element_to_move, index);
+        }
+
+        else
+            ptr = ptr->next;
+
+        index++;
+    }
+}
 
 char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list_t *))
 {
 
     int8_t free_index = strategie(size, libre);
 
-    printf("return strategy : %d", free_index);
     if (free_index == MEMORY_FULL)
         return NULL;
 
@@ -188,7 +180,8 @@ char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list
 
         // Ajouter un élément à libre
         int index_new_free = free_index + size + 1;
-        list_append(libre, (void *)index_new_free); // a trier
+        list_append(libre, (void *)index_new_free);
+        list_sort_crescent(libre);
     }
 
     return &heap[free_index + 1];
@@ -206,41 +199,33 @@ void heap_free(char *ptr, list_t *libre)
 
     index_ptr = ptr - heap - 1;
 
-    // ajouter l'index dans free // A trier
-
+    // Ajout de l'index dans free
     list_append(libre, (void *)index_ptr);
+    list_sort_crescent(libre);
 
-    // int bool = 1;
-
-    // while (bool)
-    // {
-    //     bool = search_two_free_zone();
-    // }
+    search_two_free_zone(libre);
 }
 
-// void add_two_zone_free(int first_zone)
-// {
-//     int len_first_zone = heap[first_zone];
-//     int index_second_zone = len_first_zone + first_zone + 1;
+void search_two_free_zone(list_t *libre)
+{
+    element_t *element;
+    element = libre->start;
 
-//     heap[first_zone] = len_first_zone + heap[index_second_zone] + 1;
-//     heap[index_second_zone] = FREE_BLOCK;
-//     heap[index_second_zone + 1] = FREE_BLOCK;
-// }
+    while (element->next != NULL)
+    {
+        uint8_t index, index_next;
+        uint32_t ind_remove;
+        index = (int)element->data;
+        index_next = (int)element->next->data;
+        if (index + heap[index] == index_next)
+        {
+            heap[index] += heap[index_next] + 1;
+            heap[index_next] = FREE_BLOCK;
+            heap[index_next + 1] = FREE_BLOCK;
 
-// int search_two_free_zone()
-// {
-//     int index = libre;
-
-//     while (index < SIZE_HEAP)
-//     {
-//         if (heap[index + 1] == FREE_ZONE && heap[heap[index] + index + 2] == FREE_ZONE)
-//         {
-//             add_two_zone_free(index);
-//             return 1;
-//         }
-//         index = get_index_next_block(index);
-//     }
-
-//     return 0;
-// }
+            ind_remove = list_index(libre, (void *)index_next);
+            list_remove_at(libre, ind_remove);
+        }
+        element = element->next;
+    }
+}

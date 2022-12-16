@@ -76,13 +76,13 @@ void test_add_character(void)
     strcpy(p2, "aaaaab");
 
     CU_ASSERT(heap[4] == 123 && heap[5] == 'a')
-    CU_ASSERT((int)libre.start == NULL);
+    CU_ASSERT(libre.start == NULL);
 
     // Toute la mémoire alloué
     p3 = (char *)heap_malloc(4, &libre, strategie);
 
     CU_ASSERT(p3 == NULL)
-    CU_ASSERT((int)libre.start == NULL);
+    CU_ASSERT(libre.start == NULL);
 }
 
 void test_add_to_empty_heap(void)
@@ -116,22 +116,47 @@ void test_add_to_almost_empty_heap(void)
 
 void test_heap_free(void)
 {
+
+    char *p1, *p2, *p3;
+
     init_heap(&libre);
+    p1 = (char *)heap_malloc(3, &libre, strategie);
+    strcpy(p1, "ab");
+    p2 = (char *)heap_malloc(2, &libre, strategie);
+    strcpy(p2, "a");
+    p3 = (char *)heap_malloc(3, &libre, strategie);
+    strcpy(p3, "ab");
 
-    heap[0] = 3;
-    strcpy(&heap[1], "ab");
-    heap[4] = 2;
-    strcpy(&heap[5], "a");
-    heap[7] = 3;
-    strcpy(&heap[8], "ab");
-    heap[11] = 116;
-    heap[12] = -1;
-    libre = 11;
-
-    heap_free(&heap[5]);
+    heap_free(p2, &libre);
 
     CU_ASSERT(heap[4] == 2 && heap[5] == FREE_ZONE);
     CU_ASSERT((int)libre.start->data == 4);
+}
+
+void test_list_sort_crescent(void)
+{
+    init_heap(&libre);
+
+    list_append(&libre, (void *)9);
+    list_append(&libre, (void *)4);
+    list_append(&libre, (void *)2);
+    list_append(&libre, (void *)7);
+
+    element_t *ptr;
+    ptr = libre.start;
+
+    list_sort_crescent(&libre);
+    display_heap(0, &libre);
+
+    CU_ASSERT((int)libre.start->data == 0);
+    ptr = ptr->next;
+    CU_ASSERT((int)ptr->data == 2);
+    ptr = ptr->next;
+    CU_ASSERT((int)ptr->data == 4);
+    ptr = ptr->next;
+    CU_ASSERT((int)ptr->data == 7);
+    ptr = ptr->next;
+    CU_ASSERT((int)ptr->data == 9);
 }
 
 int init_suite(void) { return 0; }
@@ -160,7 +185,8 @@ int main()
         NULL == CU_add_test(pSuite, "test of test_add_character()", test_add_character) ||
         NULL == CU_add_test(pSuite, "test of test_add_to_empty_heap()", test_add_to_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_add_to_almost_empty_heap()", test_add_to_almost_empty_heap) ||
-        NULL == CU_add_test(pSuite, "test of test_heap_free()", test_heap_free)
+        NULL == CU_add_test(pSuite, "test of test_heap_free()", test_heap_free) ||
+        NULL == CU_add_test(pSuite, "test of test_list_sort_crescent()", test_list_sort_crescent)
 
     )
     {
