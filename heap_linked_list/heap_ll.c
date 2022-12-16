@@ -131,7 +131,7 @@ int8_t best_fit(uint8_t size, list_t *libre)
     return near_index;
 }
 
-void list_sort_crescent(list_t *libre)
+void list_sort(list_t *libre)
 {
     uint8_t index = 0;
     element_t *ptr, *element_to_move;
@@ -181,7 +181,7 @@ char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list
         // Ajouter un élément à libre
         int index_new_free = free_index + size + 1;
         list_append(libre, (void *)index_new_free);
-        list_sort_crescent(libre);
+        list_sort(libre);
     }
 
     return &heap[free_index + 1];
@@ -201,7 +201,7 @@ void heap_free(char *ptr, list_t *libre)
 
     // Ajout de l'index dans free
     list_append(libre, (void *)index_ptr);
-    list_sort_crescent(libre);
+    list_sort(libre);
 
     search_two_free_zone(libre);
 }

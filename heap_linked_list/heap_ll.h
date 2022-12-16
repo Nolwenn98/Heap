@@ -21,7 +21,7 @@ int8_t first_fit(uint8_t size, list_t *libre);
 int8_t best_fit(uint8_t size, list_t *libre);
 char *heap_malloc(uint8_t size, list_t *libre, int8_t (*strategie)(uint8_t, list_t *));
 
-void list_sort_crescent(list_t *libre);
+void list_sort(list_t *libre);
 
 void heap_free(char *ptr, list_t *libre);
 
