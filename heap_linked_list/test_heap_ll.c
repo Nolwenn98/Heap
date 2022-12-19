@@ -59,7 +59,6 @@ void test_fit_memory_full(void)
 void test_first_fit(void)
 {
     int size = 3;
-    int data1 = 4;
 
     // Une zone mémoire alloué
     heap[0] = 3;
@@ -67,7 +66,7 @@ void test_first_fit(void)
     list_pop_first(&libre);
     heap[4] = 123;
     heap[5] = -1;
-    list_append(&libre, (void *)data1);
+    list_append(&libre, (void *)4);
 
     CU_ASSERT(first_fit(heap, &libre, size) == 4);
 
@@ -85,7 +84,6 @@ void test_first_fit(void)
 void test_worst_fit(void)
 {
     int size = 3;
-    int data1 = 4;
 
     // Une zone mémoire alloué
     heap[0] = 3;
@@ -93,7 +91,7 @@ void test_worst_fit(void)
     list_pop_first(&libre);
     heap[4] = 123;
     heap[5] = -1;
-    list_append(&libre, (void *)data1);
+    list_append(&libre, (void *)4);
 
     CU_ASSERT(worst_fit(heap, &libre, size) == 4);
 
@@ -111,7 +109,8 @@ void test_worst_fit(void)
 void test_best_fit(void)
 {
     int size = 3;
-    int data1 = 4;
+
+    init_heap(heap, &libre);
 
     // Une zone mémoire alloué
     heap[0] = 3;
@@ -119,7 +118,7 @@ void test_best_fit(void)
     list_pop_first(&libre);
     heap[4] = 123;
     heap[5] = -1;
-    list_append(&libre, (void *)data1);
+    list_append(&libre, (void *)4);
 
     CU_ASSERT(best_fit(heap, &libre, size) == 4);
 
@@ -175,6 +174,7 @@ void test_add_character(void)
 void test_add_to_empty_heap(void)
 {
     char *p1, *p2;
+    strategie = &first_fit;
 
     init_heap(heap, &libre);
     p1 = (char *)heap_malloc(heap, &libre, 127, strategie);
@@ -190,6 +190,7 @@ void test_add_to_empty_heap(void)
 void test_add_to_almost_empty_heap(void)
 {
     char *p1, *p2;
+    strategie = &first_fit;
 
     init_heap(heap, &libre);
     p1 = (char *)heap_malloc(heap, &libre, 125, strategie);
@@ -204,6 +205,7 @@ void test_add_to_almost_empty_heap(void)
 void test_heap_free(void)
 {
     char *p1, *p2, *p3;
+    strategie = &first_fit;
 
     init_heap(heap, &libre);
     p1 = (char *)heap_malloc(heap, &libre, 3, strategie);
@@ -248,6 +250,25 @@ void test_list_sort(void)
     CU_ASSERT((int)ptr->data == 9);
 }
 
+void test_search_two_free_zone(void)
+{
+    char *p1, *p2, *p3;
+    strategie = &first_fit;
+
+    init_heap(heap, &libre);
+    p1 = (char *)heap_malloc(heap, &libre, 3, strategie);
+    p2 = (char *)heap_malloc(heap, &libre, 2, strategie);
+    p3 = (char *)heap_malloc(heap, &libre, 3, strategie);
+
+    heap_free(heap, &libre, p1);
+    heap_free(heap, &libre, p2);
+
+    CU_ASSERT(heap[0] == 6 && heap[1] == FREE_ZONE);
+    CU_ASSERT(heap[4] == FREE_BLOCK && heap[5] == FREE_BLOCK);
+    CU_ASSERT((int)libre.start->data == 0);
+    CU_ASSERT((int)libre.start->next->data == 11);
+}
+
 int init_suite(void) { return 0; }
 int clean_suite(void) { return 0; }
 
@@ -279,7 +300,8 @@ int main()
         NULL == CU_add_test(pSuite, "test of test_add_to_empty_heap()", test_add_to_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_add_to_almost_empty_heap()", test_add_to_almost_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_heap_free()", test_heap_free) ||
-        NULL == CU_add_test(pSuite, "test of test_list_sort()", test_list_sort)
+        NULL == CU_add_test(pSuite, "test of test_list_sort()", test_list_sort) ||
+        NULL == CU_add_test(pSuite, "test of test_search_two_free_zone()", test_search_two_free_zone)
 
     )
     {
