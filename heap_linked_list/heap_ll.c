@@ -49,7 +49,14 @@ void init_heap(char heap[SIZE_HEAP], list_t *libre)
         list_pop_first(libre);
     }
 
-    list_append(libre, (void *)0); // mettre l'adresse de la première case de heap
+    list_append(libre, heap); // mettre l'adresse de la première case de heap
+}
+
+int get_index(char heap[SIZE_HEAP], element_t *elem)
+{
+    // printf("%d\n", *(char *)elem->data);
+    // printf("%p - %p = %ld\n", heap, elem->data, (char *)elem->data - heap);
+    return (char *)elem->data - heap;
 }
 
 void display_heap(char heap[SIZE_HEAP], list_t *libre, int size)
@@ -92,7 +99,7 @@ void display_heap(char heap[SIZE_HEAP], list_t *libre, int size)
     printf("Libre : \n");
     while (elem != NULL)
     {
-        printf("%d\n", (int)elem->data);
+        printf("%d\n", get_index(heap, elem));
         elem = elem->next;
     }
 }
@@ -107,9 +114,9 @@ int8_t first_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 
     while (element != NULL)
     {
-        int8_t index = (int)element->data;
-        if (heap[index] >= size)
-            return (int)element->data;
+        int8_t size_free = *(char *)element->data;
+        if (size_free >= size)
+            return get_index(heap, element);
 
         element = element->next;
     }
@@ -127,11 +134,11 @@ int8_t worst_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 
     while (element != NULL)
     {
-        int8_t index = (int)element->data;
-        if (heap[index] >= max)
+        int8_t size_free = *(char *)element->data;
+        if (size_free >= max)
         {
-            max = heap[index];
-            max_index = index;
+            max = size_free;
+            max_index = get_index(heap, element);
         }
 
         element = element->next;
@@ -150,19 +157,19 @@ int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 
     while (element != NULL)
     {
-        int8_t index = (int)element->data;
+        int8_t size_free = *(char *)element->data;
 
-        if (heap[index] >= size && heap[index] - size < nearest)
+        if (size_free >= size && size_free - size < nearest)
         {
-            nearest = heap[index] - size;
-            near_index = index;
+            nearest = size_free - size;
+            near_index = get_index(heap, element);
         }
         element = element->next;
     }
     return near_index;
 }
 
-void list_sort(list_t *libre)
+void list_sort(list_t *libre) // trier de l'adresse la plus petite à la plus grande
 {
     uint8_t index = 0;
     element_t *ptr;
@@ -170,23 +177,17 @@ void list_sort(list_t *libre)
 
     while (ptr->next != NULL)
     {
-        if (ptr->previous == NULL && (int)ptr->data > (int)ptr->next->data)
+        uint32_t index_move = index + 1;
+        void *data_to_move;
+        if (ptr->previous == NULL && (char *)ptr->data > (char *)ptr->next->data)
         {
-            uint32_t index_move = index + 1;
-            uint32_t data_to_move;
-
-            data_to_move = (int)list_remove_at(libre, index_move);
-
-            list_insert_at(libre, (void *)data_to_move, index_move - 1);
+            data_to_move = list_remove_at(libre, index_move);
+            list_insert_at(libre, data_to_move, index_move - 1);
         }
-        else if ((int)ptr->data > (int)ptr->next->data)
+        else if ((char *)ptr->data > (char *)ptr->next->data)
         {
-            uint32_t index_move = index + 1;
-            uint32_t data_to_move;
-
-            data_to_move = (int)list_remove_at(libre, index_move);
-
-            list_insert_at(libre, (void *)data_to_move, index_move - 1);
+            data_to_move = list_remove_at(libre, index_move);
+            list_insert_at(libre, data_to_move, index_move - 1);
             index -= 2;
             ptr = ptr->previous->previous;
         }
@@ -214,7 +215,7 @@ char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*st
     heap[free_index] = size;
     heap[free_index + 1] = FREE_BLOCK;
 
-    int32_t index_rm = list_index(libre, (void *)free_index);
+    int32_t index_rm = list_index(libre, heap + free_index);
     list_remove_at(libre, index_rm);
 
     // Définition zone libre derrière (si besoin)
@@ -225,7 +226,7 @@ char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*st
 
         // Ajouter un élément à libre
         int index_new_free = free_index + size + 1;
-        list_append(libre, (void *)index_new_free);
+        list_append(libre, heap + index_new_free);
         list_sort(libre);
     }
 
@@ -246,7 +247,7 @@ void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr)
 
     // Ajout de l'index dans free
 
-    list_append(libre, (void *)index_ptr);
+    list_append(libre, heap + index_ptr);
     list_sort(libre);
 
     search_two_free_zone(heap, libre);
@@ -261,15 +262,15 @@ void search_two_free_zone(char heap[SIZE_HEAP], list_t *libre)
     {
         uint8_t index, index_next;
         uint32_t ind_remove;
-        index = (int)element->data;
-        index_next = (int)element->next->data;
+        index = get_index(heap, element);
+        index_next = get_index(heap, element->next);
         if (index + heap[index] + 1 == index_next)
         {
             heap[index] += heap[index_next] + 1;
             heap[index_next] = FREE_BLOCK;
             heap[index_next + 1] = FREE_BLOCK;
 
-            ind_remove = list_index(libre, (void *)index_next);
+            ind_remove = list_index(libre, heap + index_next);
             list_remove_at(libre, ind_remove);
         }
         else

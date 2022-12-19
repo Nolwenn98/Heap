@@ -15,6 +15,7 @@
 
 void init_heap(char heap[SIZE_HEAP], list_t *libre);
 void display_heap(char heap[SIZE_HEAP], list_t *libre, int size);
+int get_index(char heap[SIZE_HEAP], element_t *elem);
 
 // Stratégies
 int8_t (*strategie)(char *, list_t *, uint8_t);
