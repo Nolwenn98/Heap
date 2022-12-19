@@ -11,6 +11,8 @@
 
 #define NUMBER_THREADS (5)
 
+#define UTC_1 (1)
+
 void init_heap(char heap[SIZE_HEAP], list_t *libre);
 void display_heap(char heap[SIZE_HEAP], list_t *libre, int size);
 
@@ -28,5 +30,8 @@ void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr);
 
 // Deux zones libres à la suite
 void search_two_free_zone(char heap[SIZE_HEAP], list_t *libre);
+
+// Log
+void log_malloc(int size, int *adresse);
 
 #endif

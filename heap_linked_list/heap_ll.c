@@ -1,9 +1,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "list.h"
 #include "heap_ll.h"
+
+void get_local_time() {}
+
+void log_malloc(int size, int *adresse)
+{
+    // Get time
+    char format[22];
+    char str[128] = "\0";
+    time_t temps;
+    struct tm date;
+
+    time(&temps);
+    date = *localtime(&temps);
+
+    strftime(format, 22, "[%d/%m/%Y %H:%M:%S]", &date);
+    sprintf(str, "%s malloced %d byte at address %p ", format, size, adresse);
+
+    // Write log
+    FILE *fp;
+    fp = fopen("log.txt", "a");
+
+    if (fp == NULL)
+    {
+        printf("Impossible d'ouvrir le fichier.\n");
+        return;
+    }
+    fwrite(str, 1, sizeof(str), fp);
+    fclose(fp);
+}
 
 void init_heap(char heap[SIZE_HEAP], list_t *libre)
 {
@@ -19,7 +49,7 @@ void init_heap(char heap[SIZE_HEAP], list_t *libre)
         list_pop_first(libre);
     }
 
-    list_append(libre, (void *)0);
+    list_append(libre, (void *)0); // mettre l'adresse de la première case de heap
 }
 
 void display_heap(char heap[SIZE_HEAP], list_t *libre, int size)
