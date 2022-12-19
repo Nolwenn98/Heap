@@ -34,7 +34,6 @@ int main()
     display_heap(heap, &libre, 30);
 
     p4 = (char *)heap_malloc(heap, &libre, 8, strategie);
-    printf("p4 : %d", *p4);
     strcpy(p4, "systeme");
 
     display_heap(heap, &libre, 30);

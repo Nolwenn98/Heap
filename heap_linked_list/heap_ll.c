@@ -112,7 +112,7 @@ int8_t worst_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 
 int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
 {
-    int8_t nearest = SIZE_HEAP;
+    uint8_t nearest = SIZE_HEAP;
     int8_t near_index = MEMORY_FULL;
 
     element_t *element;
@@ -121,6 +121,7 @@ int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
     while (element != NULL)
     {
         int8_t index = (int)element->data;
+
         if (heap[index] >= size && heap[index] - size < nearest)
         {
             nearest = heap[index] - size;
@@ -129,17 +130,6 @@ int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size)
         element = element->next;
     }
     return near_index;
-}
-
-void tmp(list_t *libre)
-{
-    element_t *elem = libre->start;
-    printf("Libre ! \n");
-    while (elem != NULL)
-    {
-        printf("%d\n", (int)elem->data);
-        elem = elem->next;
-    }
 }
 
 void list_sort(list_t *libre)
