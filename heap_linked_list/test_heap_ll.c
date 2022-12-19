@@ -68,6 +68,46 @@ void test_first_fit(void)
     CU_ASSERT(first_fit(heap, &libre, size) == MEMORY_FULL);
 }
 
+void test_worst_fit(void)
+{
+    int size = 3;
+    int data1 = 4;
+
+    // Toute la mémoire libre
+    init_heap(heap, &libre);
+
+    CU_ASSERT(worst_fit(heap, &libre, size) == 0);
+
+    // Une zone mémoire alloué
+    heap[0] = 3;
+    strcpy(&heap[1], "ab");
+    list_pop_first(&libre);
+    heap[4] = 123;
+    heap[5] = -1;
+    list_append(&libre, (void *)data1);
+
+    CU_ASSERT(worst_fit(heap, &libre, size) == 4);
+
+    // Plusieurs zone mémoire
+    init_heap(heap, &libre);
+    heap[0] = 15;
+    heap[1] = FREE_BLOCK;
+    heap[16] = 4;
+    heap[20] = 115;
+    heap[21] = -1;
+    list_append(&libre, (void *)20);
+    CU_ASSERT(worst_fit(heap, &libre, size) == 20);
+
+    // Toute la mémoire alloué
+    init_heap(heap, &libre);
+
+    heap[0] = 127;
+    heap[127] = '\0';
+    list_pop_first(&libre);
+
+    CU_ASSERT(worst_fit(heap, &libre, size) == MEMORY_FULL);
+}
+
 void test_add_character(void)
 {
     char *p1, *p2, *p3;
@@ -195,6 +235,7 @@ int main()
     if (
         NULL == CU_add_test(pSuite, "test of test_init_heap()", test_init_heap) ||
         NULL == CU_add_test(pSuite, "test of test_first_fit()", test_first_fit) ||
+        NULL == CU_add_test(pSuite, "test of test_worst_fit()", test_worst_fit) ||
         NULL == CU_add_test(pSuite, "test of test_add_character()", test_add_character) ||
         NULL == CU_add_test(pSuite, "test of test_add_to_empty_heap()", test_add_to_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_add_to_almost_empty_heap()", test_add_to_almost_empty_heap) ||
