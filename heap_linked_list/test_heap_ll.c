@@ -48,6 +48,16 @@ void test_first_fit(void)
 
     CU_ASSERT(first_fit(heap, &libre, size) == 4);
 
+    // Première zone mémoire trop petite
+    init_heap(heap, &libre);
+    heap[0] = 2;
+    heap[1] = FREE_BLOCK;
+    heap[3] = 4;
+    heap[7] = 115;
+    heap[8] = -1;
+    list_append(&libre, (void *)7);
+    CU_ASSERT(first_fit(heap, &libre, size) == 7);
+
     // Toute la mémoire alloué
     init_heap(heap, &libre);
 
@@ -117,7 +127,6 @@ void test_add_to_almost_empty_heap(void)
 
 void test_heap_free(void)
 {
-
     char *p1, *p2, *p3;
 
     init_heap(heap, &libre);
@@ -145,11 +154,12 @@ void test_list_sort(void)
     list_append(&libre, (void *)1);
 
     element_t *ptr;
-    ptr = libre.start;
 
     list_sort(&libre);
 
-    CU_ASSERT((int)libre.start->data == 0);
+    ptr = libre.start;
+
+    CU_ASSERT((int)ptr->data == 0);
     ptr = ptr->next;
     CU_ASSERT((int)ptr->data == 1);
     ptr = ptr->next;
