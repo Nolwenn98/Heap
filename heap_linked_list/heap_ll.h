@@ -3,11 +3,13 @@
 
 #include "list.h"
 
-#define SIZE_HEAP 128
-#define FREE_BLOCK '\0'
-#define FREE_ZONE -1
+#define SIZE_HEAP (128)
+#define FREE_BLOCK ('\0')
+#define FREE_ZONE (-1)
 
-#define MEMORY_FULL -1
+#define MEMORY_FULL (-1)
+
+#define NUMBER_THREADS (5)
 
 void init_heap(char heap[SIZE_HEAP], list_t *libre);
 void display_heap(char heap[SIZE_HEAP], list_t *libre, int size);

@@ -150,7 +150,7 @@ void list_sort(list_t *libre)
 
     while (ptr->next != NULL)
     {
-        if (ptr->previous == NULL && ptr->data > ptr->next->data)
+        if (ptr->previous == NULL && (int)ptr->data > (int)ptr->next->data)
         {
             uint32_t index_move = index + 1;
             uint32_t data_to_move;
@@ -159,7 +159,7 @@ void list_sort(list_t *libre)
 
             list_insert_at(libre, (void *)data_to_move, index_move - 1);
         }
-        else if (ptr->data > ptr->next->data)
+        else if ((int)ptr->data > (int)ptr->next->data)
         {
             uint32_t index_move = index + 1;
             uint32_t data_to_move;
@@ -180,7 +180,6 @@ void list_sort(list_t *libre)
 
 char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*strategie)(char *, list_t *, uint8_t))
 {
-
     int8_t free_index = strategie(heap, libre, size);
 
     if (free_index == MEMORY_FULL)
@@ -229,7 +228,6 @@ void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr)
 
     list_append(libre, (void *)index_ptr);
     list_sort(libre);
-    printf("ici");
 
     search_two_free_zone(heap, libre);
 }
