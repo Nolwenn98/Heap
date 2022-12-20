@@ -7,25 +7,25 @@
 #include "list.h"
 #include "heap_ll.h"
 
-void get_local_time() {}
+static list_t libre = LIST_INITIALIZER;
+static char heap[SIZE_HEAP];
 
-void log_malloc(int size, char *adresse, bool is_malloc)
+void log_write(uint8_t size, char *adresse, bool is_malloc)
 {
     // Get time
     char format_date[128];
-    char str_log[150];
+    char str_log[250];
     time_t temps;
     struct tm date;
 
     time(&temps);
     date = *localtime(&temps);
-    // strftime(format_date, 128, "[%d/%m/%Y]", &date);
     strftime(format_date, 128, "[%d/%m/%Y %H:%M:%S]", &date);
 
     if (is_malloc)
         sprintf(str_log, "%s malloced %d byte at address %p \n", format_date, size, adresse);
-    // else
-    //     sprintf(str_log, "%s freed %d byte at address %p \n", format_date, size, adresse);
+    else
+        sprintf(str_log, "%s freed %d byte at address %p \n", format_date, size, adresse);
 
     // Write log
     FILE *file_ptr;
@@ -37,20 +37,20 @@ void log_malloc(int size, char *adresse, bool is_malloc)
     }
 }
 
-void read_logger(char *logger_file)
+void log_read(char *logger_file)
 {
-    int size;
+    uint8_t size;
     char *adresse;
     char is_malloc[12];
 
     FILE *file_ptr;
-    file_ptr = fopen("log.txt", "r");
+    file_ptr = fopen(logger_file, "r");
 
     if (file_ptr != NULL)
     {
         while (!feof(file_ptr))
         {
-            fscanf(file_ptr, "%*s %*s %s %d byte at address %p \n",
+            fscanf(file_ptr, "%*s %*s %s %hhd byte at address %p \n",
                    is_malloc,
                    &size,
                    &adresse);
@@ -63,7 +63,7 @@ void read_logger(char *logger_file)
     }
 }
 
-void init_heap(char heap[SIZE_HEAP], list_t *libre)
+void init_heap()
 {
     heap[0] = SIZE_HEAP - 1;
     heap[1] = FREE_ZONE;
@@ -72,32 +72,28 @@ void init_heap(char heap[SIZE_HEAP], list_t *libre)
         heap[i] = FREE_BLOCK;
     }
 
-    while (libre->start != NULL)
+    while (libre.start != NULL)
     {
-        list_pop_first(libre);
+        list_pop_first(&libre);
     }
 
-    list_append(libre, heap); // mettre l'adresse de la première case de heap
+    list_append(&libre, heap); // mettre l'adresse de la première case de heap
 }
 
 int get_index(char heap[SIZE_HEAP], element_t *elem)
 {
-    // printf("%d\n", *(char *)elem->data);
-    // printf("%p - %p = %ld\n", heap, elem->data, (char *)elem->data - heap);
     return (char *)elem->data - heap;
 }
 
-void display_heap(char heap[SIZE_HEAP], list_t *libre, int size)
+void display_heap(uint8_t size)
 {
-    uint8_t i = 0;
     uint8_t count = heap[0];
 
     printf("\n### heap ###\n");
     printf("%d => %d\n", 0, count);
 
-    while (i < size)
+    for (uint8_t i = 0; i < size; i++)
     {
-        i++;
 
         if (heap[i] == FREE_BLOCK)
         {
@@ -123,7 +119,7 @@ void display_heap(char heap[SIZE_HEAP], list_t *libre, int size)
         }
     }
 
-    element_t *elem = libre->start;
+    element_t *elem = libre.start;
     printf("Libre : \n");
     while (elem != NULL)
     {
@@ -227,9 +223,10 @@ void list_sort(list_t *libre) // trier de l'adresse la plus petite à la plus gr
     }
 }
 
-char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*strategie)(char *, list_t *, uint8_t))
+char *heap_malloc(uint8_t size, t_strategie strategie)
 {
-    int8_t free_index = strategie(heap, libre, size);
+
+    int8_t free_index = strategie(heap, &libre, size);
 
     if (free_index == MEMORY_FULL)
         return NULL;
@@ -243,8 +240,8 @@ char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*st
     heap[free_index] = size;
     heap[free_index + 1] = FREE_BLOCK;
 
-    int32_t index_rm = list_index(libre, heap + free_index);
-    list_remove_at(libre, index_rm);
+    int32_t index_rm = list_index(&libre, heap + free_index);
+    list_remove_at(&libre, index_rm);
 
     // Définition zone libre derrière (si besoin)
     if (size_free_zone >= size + 2 && free_index + size + 2 < SIZE_HEAP)
@@ -254,21 +251,24 @@ char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*st
 
         // Ajouter un élément à libre
         int index_new_free = free_index + size + 1;
-        list_append(libre, heap + index_new_free);
-        list_sort(libre);
+        list_append(&libre, heap + index_new_free);
+        list_sort(&libre);
     }
 
-    log_malloc(size, heap + free_index, true);
+    log_write(size, heap + free_index, true);
 
     return &heap[free_index + 1];
 }
 
-void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr)
+void heap_free(char *ptr)
 {
+    if (*ptr == FREE_ZONE) // zone déjà libre
+        return;
+
     int8_t index_ptr;
 
     index_ptr = ptr - heap - 1;
-    // log_malloc(*(heap + index_ptr), heap + index_ptr, false);
+    log_write(*(heap + index_ptr), heap + index_ptr, false);
 
     *ptr = FREE_ZONE;
     for (int i = 1; i < *(ptr - 1); ++i)
@@ -278,10 +278,10 @@ void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr)
 
     // Ajout de l'index dans free
 
-    list_append(libre, heap + index_ptr);
-    list_sort(libre);
+    list_append(&libre, heap + index_ptr);
+    list_sort(&libre);
 
-    search_two_free_zone(heap, libre);
+    search_two_free_zone(heap, &libre);
 }
 
 void search_two_free_zone(char heap[SIZE_HEAP], list_t *libre)

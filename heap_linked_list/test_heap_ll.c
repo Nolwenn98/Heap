@@ -317,8 +317,8 @@ int main()
         NULL == CU_add_test(pSuite, "test of test_add_to_empty_heap()", test_add_to_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_add_to_almost_empty_heap()", test_add_to_almost_empty_heap) ||
         NULL == CU_add_test(pSuite, "test of test_heap_free()", test_heap_free) ||
-        NULL == CU_add_test(pSuite, "test of test_list_sort()", test_list_sort) //||
-        // NULL == CU_add_test(pSuite, "test of test_search_two_free_zone()", test_search_two_free_zone)
+        NULL == CU_add_test(pSuite, "test of test_list_sort()", test_list_sort) ||
+        NULL == CU_add_test(pSuite, "test of test_search_two_free_zone()", test_search_two_free_zone)
 
     )
     {

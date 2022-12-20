@@ -10,31 +10,28 @@
 
 #define MEMORY_FULL (-1)
 
-#define NUMBER_THREADS (5)
-
-#define UTC_1 (1)
-
-void init_heap(char heap[SIZE_HEAP], list_t *libre);
-void display_heap(char heap[SIZE_HEAP], list_t *libre, int size);
+void init_heap();
+void display_heap(uint8_t size);
 int get_index(char heap[SIZE_HEAP], element_t *elem);
 
 // Stratégies
-int8_t (*strategie)(char *, list_t *, uint8_t);
+typedef int (*t_somefunc)(int, int);
+typedef int8_t (*t_strategie)(char *, list_t *, uint8_t);
+
 int8_t worst_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
 int8_t first_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
 int8_t best_fit(char heap[SIZE_HEAP], list_t *libre, uint8_t size);
-char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size,
-                  int8_t (*strategie)(char *, list_t *, uint8_t));
+char *heap_malloc(uint8_t size, t_strategie strategie);
 
 void list_sort(list_t *libre);
 
-void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr);
+void heap_free(char *ptr);
 
 // Deux zones libres à la suite
 void search_two_free_zone(char heap[SIZE_HEAP], list_t *libre);
 
 // Log
-void log_malloc(int size, char *adresse, bool is_malloc);
-void read_logger(char *logger_file);
+void log_write(uint8_t size, char *adresse, bool is_malloc);
+void log_read(char *logger_file);
 
 #endif
