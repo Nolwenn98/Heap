@@ -2,37 +2,65 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "list.h"
 #include "heap_ll.h"
 
 void get_local_time() {}
 
-void log_malloc(int size, int *adresse)
+void log_malloc(int size, char *adresse, bool is_malloc)
 {
     // Get time
-    char format[22];
-    char str[128] = "\0";
+    char format_date[128];
+    char str_log[150];
     time_t temps;
     struct tm date;
 
     time(&temps);
     date = *localtime(&temps);
+    // strftime(format_date, 128, "[%d/%m/%Y]", &date);
+    strftime(format_date, 128, "[%d/%m/%Y %H:%M:%S]", &date);
 
-    strftime(format, 22, "[%d/%m/%Y %H:%M:%S]", &date);
-    sprintf(str, "%s malloced %d byte at address %p ", format, size, adresse);
+    if (is_malloc)
+        sprintf(str_log, "%s malloced %d byte at address %p \n", format_date, size, adresse);
+    // else
+    //     sprintf(str_log, "%s freed %d byte at address %p \n", format_date, size, adresse);
 
     // Write log
-    FILE *fp;
-    fp = fopen("log.txt", "a");
-
-    if (fp == NULL)
+    FILE *file_ptr;
+    file_ptr = fopen("log.txt", "a");
+    if (file_ptr != NULL)
     {
-        printf("Impossible d'ouvrir le fichier.\n");
-        return;
+        fputs(str_log, file_ptr);
+        fclose(file_ptr);
     }
-    fwrite(str, 1, sizeof(str), fp);
-    fclose(fp);
+}
+
+void read_logger(char *logger_file)
+{
+    int size;
+    char *adresse;
+    char is_malloc[12];
+
+    FILE *file_ptr;
+    file_ptr = fopen("log.txt", "r");
+
+    if (file_ptr != NULL)
+    {
+        while (!feof(file_ptr))
+        {
+            fscanf(file_ptr, "%*s %*s %s %d byte at address %p \n",
+                   is_malloc,
+                   &size,
+                   &adresse);
+
+            if (is_malloc[0] == 'm')
+                printf("%d - %p\n", size, adresse);
+        }
+
+        fclose(file_ptr);
+    }
 }
 
 void init_heap(char heap[SIZE_HEAP], list_t *libre)
@@ -230,6 +258,8 @@ char *heap_malloc(char heap[SIZE_HEAP], list_t *libre, uint8_t size, int8_t (*st
         list_sort(libre);
     }
 
+    log_malloc(size, heap + free_index, true);
+
     return &heap[free_index + 1];
 }
 
@@ -237,13 +267,14 @@ void heap_free(char heap[SIZE_HEAP], list_t *libre, char *ptr)
 {
     int8_t index_ptr;
 
+    index_ptr = ptr - heap - 1;
+    // log_malloc(*(heap + index_ptr), heap + index_ptr, false);
+
     *ptr = FREE_ZONE;
     for (int i = 1; i < *(ptr - 1); ++i)
     {
         *(ptr + i) = FREE_BLOCK;
     }
-
-    index_ptr = ptr - heap - 1;
 
     // Ajout de l'index dans free
 

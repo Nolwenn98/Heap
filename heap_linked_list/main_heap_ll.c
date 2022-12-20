@@ -38,6 +38,11 @@ int main()
 
     display_heap(heap, &libre, 30);
 
+    heap_free(heap, &libre, p1);
+    heap_free(heap, &libre, p3);
+
+    read_logger("log.txt");
+
     // char test = "ajs";
 
     // log_malloc(2, &test);
